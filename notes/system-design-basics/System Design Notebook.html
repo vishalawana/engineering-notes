@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>System Design Notebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F5; --surface:#FFFFFF; --ink:#18202C; --muted:#566173; --line:#D3DAE4;
+  --rabbit:#9A6400; --rabbit-fill:#F2B13A; --rabbit-soft:#FDF0D3;
+  --kafka:#4338CA; --kafka-fill:#5B50E0; --kafka-soft:#E6E4FC;
+  --ok:#1F7A4D; --ok-soft:#DDF3E7; --bad:#B42318; --bad-soft:#FBE3E1;
+  --code-bg:#1B2433; --code-ink:#E6EAF0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10141B; --surface:#18202B; --ink:#E6EAF0; --muted:#9AA5B5; --line:#2B3545;
+    --rabbit:#F5C063; --rabbit-fill:#E0A12C; --rabbit-soft:#3A2D10;
+    --kafka:#A79FFF; --kafka-fill:#6D63F0; --kafka-soft:#25225A;
+    --ok:#56D093; --ok-soft:#173A29; --bad:#FF8A80; --bad-soft:#40201E;
+    --code-bg:#0B0F15; --code-ink:#E6EAF0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10141B; --surface:#18202B; --ink:#E6EAF0; --muted:#9AA5B5; --line:#2B3545;
+  --rabbit:#F5C063; --rabbit-fill:#E0A12C; --rabbit-soft:#3A2D10;
+  --kafka:#A79FFF; --kafka-fill:#6D63F0; --kafka-soft:#25225A;
+  --ok:#56D093; --ok-soft:#173A29; --bad:#FF8A80; --bad-soft:#40201E;
+  --code-bg:#0B0F15; --code-ink:#E6EAF0;
+  color-scheme: dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 108px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+h1,h2,h3{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;line-height:1.15;margin:0}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+p{margin:0 0 .8em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--kafka);outline-offset:2px;border-radius:6px}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-inner{max-width:880px;margin:0 auto;padding:10px 20px 0}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand b{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:16px;font-weight:700}
+.chapters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chapters button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 12px;font-size:14px;white-space:nowrap}
+.chapters button[aria-current="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chapters button:disabled{opacity:.5;cursor:default}
+.sections{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:8px}
+.sections button{border:0;background:none;padding:8px 10px;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.sections button.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+main{max-width:880px;margin:0 auto;padding:0 20px 80px}
+section{padding-top:44px}
+section > h2{font-size:clamp(24px,4vw,30px);font-weight:700;margin-bottom:6px}
+.lead{color:var(--muted);max-width:62ch;margin-bottom:18px}
+
+/* hero */
+.hero{padding-top:40px}
+.hero h1{font-size:clamp(38px,8vw,68px);font-weight:800;letter-spacing:-.02em;line-height:1}
+.hero h1 .vs{display:block;font-size:.42em;font-weight:600;color:var(--muted);margin:.25em 0}
+.hero h1 .k{color:var(--kafka)}
+.hero h1 .r{color:var(--rabbit)}
+.hero p.tag{font-size:19px;max-width:56ch;margin:18px 0 22px}
+.mn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mn div{padding:14px 16px;border-radius:12px}
+.mn .r{background:var(--rabbit-soft)}
+.mn .k{background:var(--kafka-soft)}
+.mn strong{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:20px}
+.mn .r strong{color:var(--rabbit)}
+.mn .k strong{color:var(--kafka)}
+.mn span{font-size:15px;color:var(--muted)}
+
+/* demo */
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.demo-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-size:15px}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:700}
+.btn.r{border-color:var(--rabbit);color:var(--rabbit)}
+.btn.k{border-color:var(--kafka);color:var(--kafka)}
+.lane{border-top:1px solid var(--line);padding:14px 0 4px}
+.lane h3{font-size:18px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lane h3 small{font:400 14px/1.4 "Atkinson Hyperlegible",system-ui,sans-serif;color:var(--muted)}
+.lane.r h3{color:var(--rabbit)}
+.lane.k h3{color:var(--kafka)}
+.track{display:flex;gap:6px;overflow-x:auto;padding:12px 2px 8px;min-height:74px;align-items:flex-start}
+.cell{flex:0 0 auto;width:52px;text-align:center}
+.box{height:40px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;transition:opacity .25s,transform .25s}
+.r .box{background:var(--rabbit-fill);color:#2B1C00}
+.k .box{background:var(--kafka-fill)}
+.k .box.read-both{opacity:.4}
+.off{font-size:12px;color:var(--muted);margin-top:3px}
+.pins{font-size:11px;font-weight:700;line-height:1.3;min-height:15px}
+.pin-a{color:var(--ok)} .pin-n{color:var(--bad)}
+.empty{color:var(--muted);font-size:15px;padding:10px 0}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.status{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--bg);font-size:15px;min-height:44px}
+.legend{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:15px}
+th,td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:16px}
+thead th.r{color:var(--rabbit)} thead th.k{color:var(--kafka)}
+tbody th{font-weight:700;color:var(--muted);width:24%}
+
+/* numbers */
+.nums{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.num{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.num .v{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:26px;font-weight:700}
+.num.r .v{color:var(--rabbit)} .num.k .v{color:var(--kafka)}
+.num .l{font-size:14px;color:var(--muted)}
+
+/* partitions */
+.parts{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
+.prow{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.prow .pl{width:96px;font-size:14px;color:var(--muted)}
+.chip{padding:3px 9px;border-radius:6px;font-size:13px;font-weight:700}
+.c1{background:var(--kafka-soft);color:var(--kafka)}
+.c2{background:var(--rabbit-soft);color:var(--rabbit)}
+.c3{background:var(--ok-soft);color:var(--ok)}
+
+/* guarantees */
+.gs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.g h3{font-size:17px;margin-bottom:6px}
+.g .risk{font-size:14px;font-weight:700}
+.g.bad .risk{color:var(--bad)} .g.ok .risk{color:var(--ok)}
+.g p{font-size:15px;margin:6px 0 0}
+pre{background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:12px;overflow-x:auto;font-size:14px;line-height:1.55;margin:14px 0 0}
+pre .c{color:#8FA1B8}
+.callout{border-left:4px solid var(--kafka);padding:8px 14px;margin:16px 0;background:var(--kafka-soft);border-radius:0 8px 8px 0}
+
+/* when */
+.rule{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(20px,3.4vw,26px);font-weight:600;line-height:1.3;margin:6px 0 18px;max-width:30ch}
+.rule .r{color:var(--rabbit)} .rule .k{color:var(--kafka)}
+.when{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.when > div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.when h3{font-size:19px;margin-bottom:6px}
+.when .r h3{color:var(--rabbit)} .when .k h3{color:var(--kafka)}
+.when ul{margin:0;padding-left:18px;font-size:15px}
+.when .who{font-size:14px;color:var(--muted);margin-top:8px}
+.mermaid-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:14px;overflow-x:auto}
+pre.mermaid{background:transparent;color:var(--ink);margin:0;padding:0;text-align:center}
+
+/* interview */
+.script{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:16px}
+.traps{list-style:none;padding:0;margin:14px 0}
+.traps li{padding:10px 14px;background:var(--bad-soft);border-radius:8px;margin-bottom:8px;font-size:15px}
+.traps b{color:var(--bad)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+summary{padding:11px 14px;cursor:pointer;font-weight:700;font-size:15px}
+details p{padding:0 14px 12px;margin:0;font-size:15px;color:var(--muted)}
+
+/* work */
+.work{display:grid;gap:12px}
+.work > div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.work h3{font-size:18px;margin-bottom:6px}
+.fit{display:inline-block;font-size:13px;font-weight:700;padding:2px 8px;border-radius:6px;margin-bottom:8px}
+.fit.r{background:var(--rabbit-soft);color:var(--rabbit)} .fit.k{background:var(--kafka-soft);color:var(--kafka)}
+.work p{font-size:15px;margin:0 0 6px}
+
+/* flashcards */
+.fc-stage{perspective:1200px}
+.fc{position:relative;height:220px;cursor:pointer}
+.fc-inner{position:absolute;inset:0;transition:transform .45s;transform-style:preserve-3d}
+.fc.flip .fc-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;padding:22px;display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line)}
+.front{background:var(--surface)}
+.front q{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(19px,3vw,24px);font-weight:600;quotes:none}
+.back{background:var(--ink);color:var(--surface);transform:rotateY(180deg);font-size:17px}
+.face small{position:absolute;bottom:12px;right:16px;font-size:13px;opacity:.6}
+.fc-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.fc-nav span{color:var(--muted);font-size:14px}
+
+/* quiz */
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.q h3{font:700 16px/1.4 "Atkinson Hyperlegible",system-ui,sans-serif;margin-bottom:10px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 12px;font-size:15px}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opts button:disabled{cursor:default}
+.why{font-size:14px;color:var(--muted);margin-top:8px}
+.score{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:20px;font-weight:700;margin-top:6px}
+
+.soon{padding:80px 0;text-align:center;color:var(--muted)}
+footer{max-width:880px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:13px}
+
+@media (max-width:640px){
+  .mn,.when,.nums{grid-template-columns:1fr}
+  .gs{grid-template-columns:1fr}
+  body{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .fc-inner,.box{transition:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <b>System Design Notebook</b>
+    </div>
+    <nav class="chapters" aria-label="Chapters" id="chapters"></nav>
+    <nav class="sections" aria-label="Sections" id="sections"></nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ===================== CHAPTER 1 ===================== -->
+<article data-chapter="ch1" hidden>
+
+<section class="hero" id="idea" data-label="Idea">
+  <h1><span class="k">Kafka</span><span class="vs">versus</span><span class="r">RabbitMQ</span></h1>
+  <p class="tag">Both put a buffer between services, so a slow or dead service never blocks the one calling it. RabbitMQ delivers a message and forgets it. Kafka writes it down and lets every reader keep its own bookmark.</p>
+  <div class="mn">
+    <div class="r"><strong>RabbitMQ is a postman</strong><span>Smart broker, simple consumers. The message flows through, then it’s gone.</span></div>
+    <div class="k"><strong>Kafka is a diary</strong><span>Simple broker, smart consumers. The message lives in the log; readers track their page (offset).</span></div>
+  </div>
+  <p style="margin-top:18px;color:var(--muted);font-size:15px">Why a queue at all? A direct HTTP call from the order service to the inventory service stalls, times out or drops requests when inventory is slow, down or flooded. A queue absorbs the spike (a flash sale, say) and lets the consumer work at its own pace.</p>
+</section>
+
+<section id="try" data-label="Try it">
+  <h2>See the difference</h2>
+  <p class="lead">Send a few orders, then consume them on each side. Watch what survives.</p>
+  <div class="demo">
+    <div class="demo-bar">
+      <button class="btn primary" id="produce">Send an order</button>
+      <button class="btn" id="reset">Reset</button>
+    </div>
+
+    <div class="lane r">
+      <h3>RabbitMQ queue <small>one consumer takes it, acks, the broker deletes it</small></h3>
+      <div class="track" id="rTrack"></div>
+      <div class="ctrl"><button class="btn r" id="rConsume">Worker takes next</button></div>
+    </div>
+
+    <div class="lane k">
+      <h3>Kafka topic (one partition) <small>append-only; each consumer group keeps its own offset</small></h3>
+      <div class="track" id="kTrack"></div>
+      <div class="legend"><span class="pin-a">A</span> = Analytics offset, <span class="pin-n">N</span> = Notifications offset. Faded = read by both, but still stored.</div>
+      <div class="ctrl">
+        <button class="btn k" data-read="a">Analytics reads next</button>
+        <button class="btn k" data-read="n">Notifications reads next</button>
+        <button class="btn k" data-rewind="a">Rewind Analytics to 0</button>
+      </div>
+    </div>
+    <div class="status" id="status" aria-live="polite">Three orders are waiting. Try consuming from both sides.</div>
+  </div>
+</section>
+
+<section id="compare" data-label="Compare">
+  <h2>Side by side</h2>
+  <p class="lead">One difference drives everything: RabbitMQ deletes on consume, Kafka keeps.</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="r">RabbitMQ</th><th class="k">Kafka</th></tr></thead>
+    <tbody>
+      <tr><th>Structure</th><td>Message broker with queues</td><td>Distributed append-only log: topics split into partitions</td></tr>
+      <tr><th>After consume</th><td>Deleted on ack</td><td>Kept until retention (hours to forever)</td></tr>
+      <tr><th>Tracks progress</th><td>The broker (acks, delivery state)</td><td>The consumer (offset per consumer group)</td></tr>
+      <tr><th>Delivery</th><td>Broker pushes</td><td>Consumers pull in batches</td></tr>
+      <tr><th>Routing</th><td>Rules route by content to queues</td><td>Partition key picks the partition</td></tr>
+      <tr><th>Replay</th><td>No</td><td>Yes, rewind the offset</td></tr>
+      <tr><th>Many readers</th><td>Each message goes to one consumer</td><td>Every consumer group reads everything</td></tr>
+      <tr><th>Failures</th><td>Built-in dead letter queue</td><td>Build it yourself (retry and dead-letter topics)</td></tr>
+      <tr><th>Operations</th><td>Single binary, simple clustering, management UI</td><td>Partitions, rebalancing, consumer groups. KRaft replaced ZooKeeper. Prefer managed: Confluent Cloud, Amazon MSK, Azure Event Hubs</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="nums">
+    <div class="num r"><div class="v">4K–10K msg/s</div><div class="l">RabbitMQ throughput, ~1–5 ms latency at low volume. Per-message bookkeeping caps it.</div></div>
+    <div class="num k"><div class="v">1M+ msg/s</div><div class="l">Kafka throughput (~100×), ~5–50 ms latency that stays flat as volume grows. It only appends.</div></div>
+  </div>
+
+  <h3 style="margin-top:28px;font-size:20px">Ordering</h3>
+  <p style="margin-top:6px">RabbitMQ is FIFO per queue, but parallel consumers break the order. Kafka keeps order only inside a partition, so you pick the key that matters.</p>
+  <div class="parts" aria-label="Kafka partitions keyed by customer id">
+    <div class="prow"><span class="pl">Partition 0</span><span class="chip c1">cust 12345 #1</span><span class="chip c1">cust 12345 #2</span><span class="chip c1">cust 12345 #3</span></div>
+    <div class="prow"><span class="pl">Partition 1</span><span class="chip c2">cust 67890 #1</span><span class="chip c3">cust 55501 #1</span><span class="chip c2">cust 67890 #2</span></div>
+    <div class="prow" style="font-size:14px;color:var(--muted)">Key = customerId. Each customer’s orders stay in sequence; partitions run in parallel; no global order.</div>
+  </div>
+  <p><b>Trade-off:</b> RabbitMQ gives global order with one consumer. Kafka gives per-entity order with parallelism.</p>
+</section>
+
+<section id="guarantees" data-label="Guarantees">
+  <h2>Delivery guarantees</h2>
+  <p class="lead">When a consumer fails, you either lose the message or deliver it again.</p>
+  <div class="gs">
+    <div class="g bad"><h3>At-most-once</h3><div class="risk">Risk: lost messages</div><p>Send once, never retry. Fast. Both support it.</p></div>
+    <div class="g ok"><h3>At-least-once</h3><div class="risk">Risk: duplicates</div><p>Retry until acked. No loss. The industry default; both support it.</p></div>
+    <div class="g"><h3>Exactly-once</h3><div class="risk" style="color:var(--kafka)">Kafka only, narrow</div><p>Only Kafka topic to Kafka topic, one cluster, with transactions.</p></div>
+  </div>
+  <div class="callout">The moment you write to a database, call an API or cross clusters, you’re back to at-least-once. So make consumers <b>idempotent</b>: processing the same message twice must be harmless.</div>
+<pre><code>@KafkaListener(topics = "orders")
+void handle(OrderEvent e) {
+  if (processedRepo.existsById(e.eventId())) return; <span class="c">// seen it, skip</span>
+  inventory.reserve(e);
+  processedRepo.save(new Processed(e.eventId()));    <span class="c">// same DB transaction ideally</span>
+}</code></pre>
+</section>
+
+<section id="when" data-label="When">
+  <h2>When to use which</h2>
+  <p class="rule">A <span class="r">job to do once</span> goes to RabbitMQ. A <span class="k">fact others may care about, now or later</span>, goes to Kafka.</p>
+  <div class="when">
+    <div class="r">
+      <h3>RabbitMQ</h3>
+      <ul><li>Task queues, background jobs: emails, payments, image resizing</li><li>Smart routing: the broker picks the worker by content</li><li>Sub-5 ms delivery at moderate scale</li><li>Small team, simple operations</li></ul>
+      <div class="who">Instagram (photo upload processing), Reddit (comment threads, karma)</div>
+    </div>
+    <div class="k">
+      <h3>Kafka</h3>
+      <ul><li>Many systems reading the same events: analytics, fraud, billing, audit</li><li>Replay to debug or rebuild state</li><li>Millions of events per second</li><li>A permanent event history</li></ul>
+      <div class="who">LinkedIn (invented it), Netflix (recommendations, billing), Uber (pricing, fraud)</div>
+    </div>
+  </div>
+  <h3 style="margin-top:28px;font-size:20px">Or both</h3>
+  <p style="margin-top:6px">Kafka is the event backbone; RabbitMQ runs the jobs those events trigger.</p>
+  <div class="mermaid-wrap">
+<pre class="mermaid">
+flowchart LR
+  O[Order service] -->|order.placed| K[(Kafka topic)]
+  K --> A[Analytics]
+  K --> B[Billing]
+  K --> D[Job dispatcher]
+  D -->|send-email| R[[RabbitMQ queue]]
+  D -->|make-invoice| R
+  R --> W1[Worker]
+  R --> W2[Worker]
+</pre>
+  </div>
+</section>
+
+<section id="interview" data-label="Interview">
+  <h2>In the interview</h2>
+  <p class="lead">Name the need first, then the tool. “I’ll add Kafka” without a reason is a red flag.</p>
+  <div class="script">“Checkout shouldn’t wait on inventory, so I’ll decouple with a queue. Order events are read by inventory, analytics and notifications, and we may want replay, so I’d use Kafka, partitioned by <code>orderId</code>. Side jobs like emails go to a RabbitMQ task queue. Delivery is at-least-once, so consumers are idempotent on <code>eventId</code>.”</div>
+  <ul class="traps">
+    <li><b>Trap:</b> “Kafka’s exactly-once removes duplicates.” Not once a database or external API is involved.</li>
+    <li><b>Trap:</b> “Kafka keeps messages in order.” Only per partition.</li>
+    <li><b>Trap:</b> Kafka for a simple email job. Over-engineering; a task queue is enough.</li>
+  </ul>
+  <h3 style="font-size:18px;margin:18px 0 10px">Likely follow-ups</h3>
+  <details><summary>How do you keep one user’s events in order?</summary><p>Use userId as the partition key. All their events land in one partition, which is ordered.</p></details>
+  <details><summary>A consumer crashed mid-message. Now what?</summary><p>No ack or no offset commit, so the message is redelivered (at-least-once). The consumer must be idempotent.</p></details>
+  <details><summary>A message keeps failing.</summary><p>RabbitMQ moves it to a dead letter queue. In Kafka, send it to a retry topic, then a dead-letter topic (Spring Kafka has a recoverer for this).</p></details>
+  <details><summary>How do you scale Kafka consumers?</summary><p>Add consumers to the same group. Parallelism caps at the number of partitions; extra consumers sit idle.</p></details>
+  <details><summary>The queue keeps growing.</summary><p>Watch consumer lag, add workers, apply backpressure or rate limits upstream.</p></details>
+  <details><summary>Why not a direct HTTP call?</summary><p>Coupling. A slow or down service stalls the caller, and a spike drops requests with nowhere to buffer them.</p></details>
+</section>
+
+<section id="work" data-label="At work">
+  <h2>At work</h2>
+  <p class="lead">Map each async flow to job or fact. These also make good “tell me about a system you built” stories.</p>
+  <div class="work">
+    <div>
+      <span class="fit r">Job shaped</span>
+      <h3>Repurposer’s heavy wizard steps</h3>
+      <p>Transcribe, clip, render: each is one unit of work done once. Laravel queues (Redis driver) already fit this model. Reach for RabbitMQ when you need routing or priorities across many worker types, or workers in another language such as Java or Python.</p>
+    </div>
+    <div>
+      <span class="fit k">Fact shaped</span>
+      <h3>Webinar tool’s live comments</h3>
+      <p>Comments from YouTube, Instagram and Facebook are events that several readers want: the live display, moderation, post-webinar analytics. That’s the Kafka shape (one stream, independent consumer groups, replay). At your scale, Redis Streams gives the same model with far less to run.</p>
+    </div>
+  </div>
+</section>
+
+<section id="practice" data-label="Practice">
+  <h2>Flashcards</h2>
+  <p class="lead">Tap a card to flip it.</p>
+  <div class="fc-stage">
+    <div class="fc" id="fc" role="button" tabindex="0" aria-label="Flashcard, press to flip">
+      <div class="fc-inner">
+        <div class="face front"><q id="fcQ"></q><small>Tap to flip</small></div>
+        <div class="face back"><div id="fcA"></div><small>Tap to flip back</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-nav">
+    <button class="btn" id="fcPrev">Previous</button>
+    <span id="fcCount"></span>
+    <button class="btn" id="fcNext">Next</button>
+  </div>
+
+  <h2 style="margin-top:44px">Quick quiz</h2>
+  <p class="lead">Five questions. Pick one answer each.</p>
+  <div id="quiz"></div>
+  <div class="score" id="score"></div>
+</section>
+
+</article>
+
+<article data-chapter="soon" hidden>
+  <div class="soon">
+    <h2>Next chapter goes here</h2>
+    <p>Share the next transcript and it gets added to this notebook.</p>
+  </div>
+</article>
+
+</main>
+<footer>Notes from a Kafka vs RabbitMQ explainer. Numbers are ballpark; they vary with message size and hardware.</footer>
+
+<script>
+/* ---------- chapters ---------- */
+const CHAPTERS = [
+  {id:"ch1", label:"1  Kafka vs RabbitMQ"},
+  {id:"soon", label:"2  Coming next", disabled:true}
+];
+const chapNav = document.getElementById("chapters");
+const secNav = document.getElementById("sections");
+function showChapter(id){
+  document.querySelectorAll("article[data-chapter]").forEach(a => a.hidden = a.dataset.chapter !== id);
+  chapNav.querySelectorAll("button").forEach(b => b.setAttribute("aria-current", b.dataset.id === id ? "true" : "false"));
+  secNav.innerHTML = "";
+  const art = document.querySelector(`article[data-chapter="${id}"]`);
+  art.querySelectorAll("section[data-label]").forEach(s => {
+    const b = document.createElement("button");
+    b.textContent = s.dataset.label;
+    b.dataset.target = s.id;
+    b.onclick = () => s.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    secNav.appendChild(b);
+  });
+  observeSections(art);
+}
+CHAPTERS.forEach(c => {
+  const b = document.createElement("button");
+  b.textContent = c.label; b.dataset.id = c.id;
+  if (c.disabled) b.disabled = true;
+  b.onclick = () => showChapter(c.id);
+  chapNav.appendChild(b);
+});
+let io;
+function observeSections(art){
+  if (io) io.disconnect();
+  io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting){
+        secNav.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.target === e.target.id));
+      }
+    });
+  }, {rootMargin:"-40% 0px -55% 0px"});
+  art.querySelectorAll("section[data-label]").forEach(s => io.observe(s));
+}
+const start = (location.hash || "").slice(1);
+showChapter(CHAPTERS.some(c => c.id === start && !c.disabled) ? start : "ch1");
+
+/* ---------- demo ---------- */
+let n, rQ, kLog, off;
+const rTrack = document.getElementById("rTrack"), kTrack = document.getElementById("kTrack"), status = document.getElementById("status");
+function init(){ n = 0; rQ = []; kLog = []; off = {a:0, n:0}; for (let i=0;i<3;i++) produce(true); render(); say("Three orders are waiting. Try consuming from both sides."); }
+function produce(silent){ n++; rQ.push(n); kLog.push(n); if(!silent){ render(); say(`Order #${n} sent. It went into the RabbitMQ queue and was appended to the Kafka log at offset ${n-1}.`);} }
+function say(t){ status.textContent = t; }
+function render(){
+  rTrack.innerHTML = rQ.length ? rQ.map(id => `<div class="cell"><div class="box">#${id}</div></div>`).join("") : `<div class="empty">Queue empty. Every message was consumed and deleted.</div>`;
+  kTrack.innerHTML = kLog.length ? kLog.map((id,i) => {
+    const both = i < off.a && i < off.n;
+    const pins = (off.a === i ? `<span class="pin-a">A</span> ` : "") + (off.n === i ? `<span class="pin-n">N</span>` : "");
+    return `<div class="cell"><div class="box ${both ? "read-both" : ""}">#${id}</div><div class="off">offset ${i}</div><div class="pins">${pins}</div></div>`;
+  }).join("") + endPin() : `<div class="empty">Log empty.</div>`;
+}
+function endPin(){
+  const L = kLog.length;
+  const pins = (off.a === L ? `<span class="pin-a">A</span> ` : "") + (off.n === L ? `<span class="pin-n">N</span>` : "");
+  return pins ? `<div class="cell"><div class="box" style="background:transparent;border:1px dashed var(--line);color:var(--muted)">next</div><div class="off">offset ${L}</div><div class="pins">${pins}</div></div>` : "";
+}
+document.getElementById("produce").onclick = () => produce(false);
+document.getElementById("reset").onclick = init;
+document.getElementById("rConsume").onclick = () => {
+  if (!rQ.length) return say("Nothing left in the RabbitMQ queue. Send an order first.");
+  const id = rQ.shift(); render();
+  say(`A worker took order #${id}, acked it, and RabbitMQ deleted it. No other service can ever read #${id} again.`);
+};
+document.querySelectorAll("[data-read]").forEach(b => b.onclick = () => {
+  const g = b.dataset.read, name = g === "a" ? "Analytics" : "Notifications";
+  if (off[g] >= kLog.length) return say(`${name} is caught up at offset ${off[g]}. Send another order.`);
+  const id = kLog[off[g]]; off[g]++; render();
+  say(`${name} read order #${id} and moved its offset to ${off[g]}. The message is still in the log for everyone else.`);
+});
+document.querySelector("[data-rewind]").onclick = () => {
+  off.a = 0; render();
+  say("Analytics rewound to offset 0 and can reprocess every order. That’s replay, and RabbitMQ can’t do it.");
+};
+init();
+
+/* ---------- flashcards ---------- */
+const CARDS = [
+  ["What happens to a RabbitMQ message after the consumer acks it?", "The broker deletes it."],
+  ["What is a Kafka offset?", "A consumer group’s position in a partition’s log: its bookmark. Rewind it to replay."],
+  ["Where does Kafka guarantee ordering?", "Only within a partition. Choose the partition key (e.g. customerId) for per-entity order."],
+  ["When is Kafka’s exactly-once actually exactly-once?", "Only Kafka topic to Kafka topic, in one cluster, using transactions."],
+  ["Why must consumers be idempotent?", "At-least-once delivery can deliver the same message twice; reprocessing must be harmless."],
+  ["Smart broker or smart consumer?", "RabbitMQ: smart broker, simple consumers. Kafka: simple broker, smart consumers."],
+  ["What caps Kafka consumer parallelism?", "The number of partitions. Extra consumers in a group sit idle."],
+  ["One-line rule for picking?", "A job to do once goes to RabbitMQ; a fact others may need, now or later, goes to Kafka."]
+];
+let ci = 0;
+const fc = document.getElementById("fc");
+function showCard(){ fc.classList.remove("flip"); document.getElementById("fcQ").textContent = CARDS[ci][0]; document.getElementById("fcA").textContent = CARDS[ci][1]; document.getElementById("fcCount").textContent = `${ci+1} of ${CARDS.length}`; }
+fc.onclick = () => fc.classList.toggle("flip");
+fc.onkeydown = e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); fc.classList.toggle("flip"); } };
+document.getElementById("fcNext").onclick = () => { ci = (ci+1) % CARDS.length; showCard(); };
+document.getElementById("fcPrev").onclick = () => { ci = (ci-1+CARDS.length) % CARDS.length; showCard(); };
+showCard();
+
+/* ---------- quiz ---------- */
+const QUIZ = [
+  {q:"Analytics and billing must both process every order event, and a new service next year needs the full history. Pick one.", o:["RabbitMQ","Kafka","A direct HTTP call"], a:1, why:"Multiple independent readers plus replay of history is exactly Kafka’s log model."},
+  {q:"You need to resize every uploaded image once, with sub-5 ms delivery and a tiny ops team.", o:["Kafka","RabbitMQ","Either, no difference"], a:1, why:"A one-off job at moderate scale: RabbitMQ’s task queue (this is what Instagram does)."},
+  {q:"All events for one user must be processed in order in Kafka. How?", o:["Use one topic per user","Use the userId as the partition key","Turn on exactly-once"], a:1, why:"Same key, same partition, and order holds within a partition."},
+  {q:"Your Kafka consumer writes to Postgres. Which guarantee do you really have?", o:["Exactly-once","At-least-once","At-most-once"], a:1, why:"Exactly-once stops at the Kafka boundary. Writing to a database means at-least-once, so be idempotent."},
+  {q:"A RabbitMQ message keeps failing processing. Where does it end up?", o:["It’s retried forever","A dead letter queue","It’s rewound to offset 0"], a:1, why:"RabbitMQ routes repeated failures to a dead letter queue for debugging."}
+];
+let answered = 0, correct = 0;
+const quiz = document.getElementById("quiz");
+QUIZ.forEach((item, qi) => {
+  const d = document.createElement("div"); d.className = "q";
+  d.innerHTML = `<h3>${qi+1}. ${item.q}</h3><div class="opts"></div><div class="why" hidden></div>`;
+  const opts = d.querySelector(".opts"), why = d.querySelector(".why");
+  item.o.forEach((t, oi) => {
+    const b = document.createElement("button"); b.textContent = t;
+    b.onclick = () => {
+      opts.querySelectorAll("button").forEach((x, xi) => { x.disabled = true; if (xi === item.a) x.classList.add("right"); });
+      if (oi !== item.a) b.classList.add("wrong"); else correct++;
+      answered++; why.hidden = false; why.textContent = item.why;
+      if (answered === QUIZ.length) document.getElementById("score").textContent = `You got ${correct} of ${QUIZ.length}.`;
+    };
+    opts.appendChild(b);
+  });
+  quiz.appendChild(d);
+});
+
+</script>
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+</body>
+</html>
