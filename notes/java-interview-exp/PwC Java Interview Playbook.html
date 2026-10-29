@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="An interactive Java, Spring Boot, and microservices interview playbook based on a four-round PwC Java interview experience.">
+  <title>PwC Java Interview Playbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#f3f5fa; --surface:#fff; --ink:#172132; --muted:#5b687a; --line:#d7deea; --java:#c74634; --java-soft:#fde7e3; --spring:#277b48; --spring-soft:#def4e5; --blue:#2d5ac7; --blue-soft:#e5ecff; --code:#192333; --code-ink:#e9edf5; color-scheme:light; }
+    :root[data-theme="dark"] { --bg:#101620; --surface:#192230; --ink:#edf1f7; --muted:#a9b6c8; --line:#324154; --java:#ff8e7d; --java-soft:#42221f; --spring:#65d18e; --spring-soft:#173a28; --blue:#a9beff; --blue-soft:#202c50; --code:#0a1019; --code-ink:#e9edf5; color-scheme:dark; }
+    @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --bg:#101620; --surface:#192230; --ink:#edf1f7; --muted:#a9b6c8; --line:#324154; --java:#ff8e7d; --java-soft:#42221f; --spring:#65d18e; --spring-soft:#173a28; --blue:#a9beff; --blue-soft:#202c50; --code:#0a1019; --code-ink:#e9edf5; color-scheme:dark; } }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:112px; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:400 17px/1.6 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    :focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
+    .skip { position:absolute; left:-999px; }
+    .skip:focus { left:16px; top:14px; z-index:20; background:var(--surface); color:var(--ink); padding:8px 12px; border-radius:8px; }
+    .top { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--surface) 93%, transparent); backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+    .top-in { max-width:1040px; margin:auto; padding:10px 20px 0; }
+    .brand { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand a { color:var(--ink); text-decoration:none; font-weight:700; }
+    .brand b { font-family:"Bricolage Grotesque",sans-serif; }
+    .theme { border:1px solid var(--line); color:var(--ink); background:var(--surface); border-radius:8px; padding:5px 10px; font-size:14px; }
+    .nav { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; margin-top:8px; }
+    .nav a { flex:0 0 auto; color:var(--muted); text-decoration:none; padding:8px 10px; border-bottom:2px solid transparent; font-size:14px; }
+    .nav a.active { color:var(--ink); border-bottom-color:var(--java); }
+    main, footer { max-width:1040px; margin:auto; padding-inline:20px; }
+    main { padding-bottom:72px; }
+    section { padding-top:56px; }
+    h1,h2,h3 { font-family:"Bricolage Grotesque", "Atkinson Hyperlegible", sans-serif; line-height:1.12; margin:0; }
+    h2 { font-size:clamp(28px,4vw,38px); letter-spacing:-.025em; }
+    h3 { font-size:20px; }
+    p { margin:0 0 14px; }
+    .eyebrow { margin:0 0 12px; color:var(--java); font-size:14px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+    .hero { padding-top:58px; }
+    .hero h1 { max-width:880px; font-size:clamp(44px,8vw,76px); font-weight:800; letter-spacing:-.055em; }
+    .hero h1 em { color:var(--java); font-style:normal; }
+    .hero .lead { max-width:720px; margin-top:22px; color:var(--muted); font-size:clamp(18px,2.5vw,22px); }
+    .pills { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+    .pill { border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:5px 10px; font-size:14px; font-weight:700; }
+    .pill.java { color:var(--java); border-color:var(--java); } .pill.spring { color:var(--spring); border-color:var(--spring); }
+    .principle { margin-top:28px; display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:12px; }
+    .principle > div { border:1px solid var(--line); background:var(--surface); border-radius:14px; padding:16px; }
+    .principle strong { display:block; margin-bottom:5px; font-family:"Bricolage Grotesque",sans-serif; font-size:18px; }
+    .principle span { color:var(--muted); font-size:15px; }
+    .principle .hot { background:var(--java-soft); border-color:transparent; }
+    .section-lead { max-width:720px; color:var(--muted); margin:8px 0 20px; }
+    .rounds { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .round { display:block; min-height:178px; padding:16px; border-radius:14px; border:1px solid var(--line); background:var(--surface); color:var(--ink); text-decoration:none; transition:transform .18s, border-color .18s; }
+    .round:hover { transform:translateY(-3px); border-color:var(--blue); }
+    .round .n { display:grid; place-items:center; width:32px; height:32px; margin-bottom:14px; border-radius:50%; background:var(--blue-soft); color:var(--blue); font-size:14px; font-weight:700; }
+    .round b { display:block; font-family:"Bricolage Grotesque",sans-serif; font-size:18px; }
+    .round small { display:block; margin-top:5px; color:var(--muted); line-height:1.35; }
+    .answer-frame { display:grid; grid-template-columns:auto 1fr; gap:14px; padding:18px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+    .answer-frame .num { display:grid; place-items:center; width:36px; height:36px; border-radius:10px; background:var(--java-soft); color:var(--java); font-weight:700; }
+    .answer-frame p { margin:3px 0 0; color:var(--muted); }
+    .grid2 { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .card { border:1px solid var(--line); border-radius:14px; background:var(--surface); padding:18px; }
+    .card p:last-child { margin-bottom:0; }
+    .card .tag { display:inline-block; margin-bottom:9px; border-radius:6px; padding:2px 8px; background:var(--blue-soft); color:var(--blue); font-size:13px; font-weight:700; }
+    .card .tag.spring { background:var(--spring-soft); color:var(--spring); }
+    .card .tag.java { background:var(--java-soft); color:var(--java); }
+    .code { position:relative; margin:14px 0 0; }
+    pre { margin:0; overflow:auto; border-radius:12px; background:var(--code); color:var(--code-ink); padding:18px; font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    code .comment { color:#91a5bd; }
+    .copy { position:absolute; right:10px; top:10px; border:1px solid #5c6a7c; border-radius:7px; padding:4px 8px; color:var(--code-ink); background:#243044; font-size:12px; }
+    .truth { border-left:4px solid var(--java); background:var(--java-soft); border-radius:0 12px 12px 0; padding:13px 16px; margin-top:14px; }
+    .truth p { margin:0; }
+    details { border:1px solid var(--line); border-radius:10px; background:var(--surface); margin-top:9px; }
+    summary { padding:12px 15px; cursor:pointer; font-weight:700; }
+    details > div { padding:0 15px 14px; color:var(--muted); }
+    .drill { border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--surface); }
+    .drill-tabs { display:flex; overflow-x:auto; gap:0; border-bottom:1px solid var(--line); }
+    .drill-tabs button { flex:1 0 auto; border:0; background:transparent; color:var(--muted); padding:11px 14px; border-bottom:3px solid transparent; font-size:14px; }
+    .drill-tabs button.on { color:var(--ink); border-bottom-color:var(--java); font-weight:700; }
+    .drill-body { padding:20px; }
+    .drill-q { color:var(--muted); font-size:15px; }
+    .drill-a { display:none; margin-top:14px; padding:14px; border-radius:10px; background:var(--bg); }
+    .drill-a.show { display:block; }
+    .reveal { margin-top:12px; border:1px solid var(--java); background:transparent; color:var(--java); border-radius:8px; padding:7px 11px; font-weight:700; }
+    .pipeline { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:16px; }
+    .step { position:relative; min-height:104px; padding:12px; border-radius:12px; background:var(--surface); border:1px solid var(--line); }
+    .step:not(:last-child)::after { content:"→"; position:absolute; right:-13px; top:40px; z-index:2; color:var(--muted); }
+    .step b { display:block; font-size:15px; } .step span { display:block; margin-top:4px; color:var(--muted); font-size:13px; line-height:1.35; }
+    .decision { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+    .decision article { border:1px solid var(--line); border-radius:12px; background:var(--surface); padding:14px; }
+    .decision b { display:block; color:var(--spring); }
+    .decision p { margin:5px 0 0; color:var(--muted); font-size:15px; }
+    .checklist { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-top:14px; }
+    .check { display:flex; gap:9px; align-items:flex-start; padding:11px; border:1px solid var(--line); border-radius:10px; background:var(--surface); font-size:15px; }
+    .check input { margin-top:5px; accent-color:var(--spring); }
+    .interview-script { border:1px solid var(--line); border-radius:14px; background:var(--surface); padding:20px; font-size:18px; }
+    .interview-script b { color:var(--java); }
+    .study { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .study div { border-radius:12px; padding:14px; background:var(--surface); border:1px solid var(--line); }
+    .study b { display:block; color:var(--java); }
+    .study span { color:var(--muted); font-size:14px; }
+    .fc { position:relative; min-height:190px; cursor:pointer; perspective:1000px; }
+    .fc-inner { position:absolute; inset:0; transition:transform .45s; transform-style:preserve-3d; }
+    .fc.flip .fc-inner { transform:rotateY(180deg); }
+    .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:24px; border-radius:14px; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+    .front { border:1px solid var(--line); background:var(--surface); } .back { background:var(--ink); color:var(--surface); transform:rotateY(180deg); }
+    .face b { position:absolute; right:16px; bottom:12px; font-size:13px; opacity:.65; }
+    .face q { quotes:none; font-family:"Bricolage Grotesque",sans-serif; font-size:clamp(20px,3vw,26px); font-weight:700; line-height:1.25; }
+    .fc-nav { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+    .btn { border:1px solid var(--line); border-radius:8px; padding:7px 11px; background:var(--surface); color:var(--ink); }
+    .fc-nav span { color:var(--muted); font-size:14px; }
+    .quiz { display:grid; gap:12px; }
+    .question { border:1px solid var(--line); border-radius:13px; padding:16px; background:var(--surface); }
+    .question h3 { font-family:"Atkinson Hyperlegible",sans-serif; font-size:16px; line-height:1.4; }
+    .opts { display:grid; gap:7px; margin-top:12px; }
+    .opts button { text-align:left; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:8px; padding:9px 11px; }
+    .opts button.right { border-color:var(--spring); background:var(--spring-soft); color:var(--spring); font-weight:700; }
+    .opts button.wrong { border-color:var(--java); background:var(--java-soft); color:var(--java); }
+    .why { margin:9px 0 0; color:var(--muted); font-size:14px; }
+    .score { margin:4px 0 0; font-family:"Bricolage Grotesque",sans-serif; font-size:20px; font-weight:700; }
+    .sources { color:var(--muted); font-size:14px; }
+    .sources a { color:var(--blue); }
+    footer { padding-bottom:42px; color:var(--muted); font-size:13px; }
+    @media (max-width:760px) { body { font-size:16px; } .principle,.grid2,.decision,.study { grid-template-columns:1fr; } .rounds { grid-template-columns:repeat(2,1fr); } .pipeline { grid-template-columns:1fr; } .step:not(:last-child)::after { content:"↓"; right:auto; left:50%; top:auto; bottom:-17px; } .checklist { grid-template-columns:1fr; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .round,.fc-inner { transition:none; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="top">
+    <div class="top-in">
+      <div class="brand"><a href="../../index.html">← <b>Engineering Notes</b></a><button class="theme" id="theme" type="button">Theme</button></div>
+      <nav class="nav" id="nav" aria-label="Notebook sections"></nav>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="hero" id="start" data-label="Start">
+      <p class="eyebrow">Java interview experience · four rounds</p>
+      <h1><em>PwC</em> Java<br>Interview Playbook</h1>
+      <p class="lead">A practical preparation guide built from a shared interview transcript: what was asked, what the interviewer was testing, and how to answer without sounding memorised.</p>
+      <div class="pills"><span class="pill java">Java · Spring Boot</span><span class="pill spring">Microservices · APIs</span><span class="pill">~5 years’ experience profile</span><span class="pill">L1 · L2 · L3 · HR</span></div>
+      <div class="principle">
+        <div class="hot"><strong>Your project is the syllabus</strong><span>Every technology you name can become the next follow-up. Mention only what you have actually used.</span></div>
+        <div><strong>Explain the “why”</strong><span>State the decision, the trade-off, and how you would verify it in production.</span></div>
+        <div><strong>Write working code</strong><span>Live coding is not about cleverness: handle inputs, names, API shape, and failure paths.</span></div>
+      </div>
+    </section>
+
+    <section id="map" data-label="Round map">
+      <h2>What the four rounds measured</h2>
+      <p class="section-lead">The questions move from foundations to proof: first your Java and Spring knowledge, then your project decisions, then whether you can build and communicate under pressure.</p>
+      <div class="rounds">
+        <a class="round" href="#l1"><span class="n">L1</span><b>Java + Spring</b><small>Versions, Java 8, transactions, exceptions, streams.</small></a>
+        <a class="round" href="#l2"><span class="n">L2</span><b>Your project</b><small>Request flow, scale, data, messaging, deployment.</small></a>
+        <a class="round" href="#l3"><span class="n">L3</span><b>Live coding</b><small>CRUD API, clean responses, city search, code quality.</small></a>
+        <a class="round" href="#hr"><span class="n">HR</span><b>Managerial + HR</b><small>Pull requests, disagreements, job change story.</small></a>
+      </div>
+    </section>
+
+    <section id="l1" data-label="L1">
+      <p class="eyebrow">Round 1 · foundations that invite follow-ups</p>
+      <h2>Start narrow. Go deep.</h2>
+      <p class="section-lead">The opening questions were “introduce yourself”, “explain your project”, and “which Java versions have you used?” The version question is a doorway, not a trivia check.</p>
+      <div class="answer-frame"><span class="num">1</span><div><h3>A safe answer shape</h3><p>“I work primarily with Java 17 in my current service. I use records for compact DTOs and the Stream API for collection transformations. Before that, I used Java 8 features such as lambdas and Optional.” Only name features you can explain with code.</p></div></div>
+      <div class="grid2" style="margin-top:14px">
+        <article class="card"><span class="tag java">Java 8 essentials</span><h3>Know the tools and the reason</h3><p>Lambdas pass behaviour as a value. Functional interfaces define its shape. Streams transform data declaratively. Optional makes absence explicit. The Date/Time API avoids mutable, timezone-confused legacy dates.</p></article>
+        <article class="card"><span class="tag java">Classic trap</span><h3>Can a functional interface extend two others?</h3><p>Yes—only when the inherited abstract methods collapse to one logical signature. If the parents introduce different abstract methods, it is no longer a functional interface and compilation fails.</p></article>
+      </div>
+      <div class="code"><button class="copy" type="button" data-copy="stream-code">Copy</button><pre id="stream-code"><code>List&lt;Integer&gt; numbers = List.of(1, 2, 3, 4, 5, 6);
+
+List&lt;Integer&gt; evens = numbers.stream()
+    .filter(n -&gt; n % 2 == 0)
+    .toList();
+
+int evenSum = numbers.stream()
+    .filter(n -&gt; n % 2 == 0)
+    .mapToInt(Integer::intValue)
+    .sum();</code></pre></div>
+      <p class="truth"><b>Talk through the code:</b> “The filter keeps only even values. For the sum, I use an <code>IntStream</code> so I can call <code>sum()</code> without boxing.” That narration proves you understand the pipeline.</p>
+      <div class="drill" style="margin-top:18px" aria-label="Answer practice">
+        <div class="drill-tabs"><button class="on" data-drill="lambda" type="button">Why lambdas?</button><button data-drill="bean" type="button">Private @Bean?</button><button data-drill="tx" type="button">Transaction + exception?</button></div>
+        <div class="drill-body">
+          <div class="drill-item" data-item="lambda"><h3>Why do we need lambda expressions?</h3><p class="drill-q">Pause for 20 seconds. Give a reason, not a definition.</p><button class="reveal" type="button">Reveal model answer</button><div class="drill-a"><b>Model answer:</b> Lambdas let us pass small behaviour to a method without an anonymous class. They work with functional interfaces and make transformations such as filtering, mapping, and sorting shorter and easier to compose. I use them most often in Stream pipelines and callbacks.</div></div>
+          <div class="drill-item" data-item="bean" hidden><h3>Can an <code>@Bean</code> method be private?</h3><p class="drill-q">Explain the proxy issue, then state the exception.</p><button class="reveal" type="button">Reveal model answer</button><div class="drill-a"><b>Model answer:</b> In a normal proxied <code>@Configuration</code> class, Spring enhances the configuration class so inter-<code>@Bean</code> calls can return managed singletons. Private methods cannot be overridden, so avoid private <code>@Bean</code> methods there. With <code>proxyBeanMethods = false</code> / non-configuration “lite” mode, those cross-method calls are not intercepted—use dependency injection instead.</div></div>
+          <div class="drill-item" data-item="tx" hidden><h3>Can a transaction commit after an exception?</h3><p class="drill-q">Say the default, then name two ways the result can change.</p><button class="reveal" type="button">Reveal model answer</button><div class="drill-a"><b>Model answer:</b> Yes. Spring’s usual default rolls back for <code>RuntimeException</code> and <code>Error</code>, not checked exceptions. It may also commit if an exception is caught and not rethrown. I make the intended behaviour explicit with <code>rollbackFor</code> when appropriate, and I verify the real outcome with an integration test.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="l2" data-label="L2">
+      <p class="eyebrow">Round 2 · your project under load</p>
+      <h2>Make the request flow visible</h2>
+      <p class="section-lead">This round tested whether the candidate had actually built and operated the system: security, logging, performance, data access, service communication, and deployment recovery.</p>
+      <div class="grid2">
+        <article class="card"><span class="tag spring">Project walkthrough</span><h3>Use a request narrative</h3><p>Start at the client. Name the gateway or controller, authentication, validation, service decision, database or downstream call, emitted event, response, logging, and metrics. This makes follow-up questions easy to handle.</p></article>
+        <article class="card"><span class="tag spring">Security + errors</span><h3>Be concrete, not generic</h3><p>Name your authentication mechanism, authorization rule, how secrets are supplied, the correlation ID, structured error log fields, alert condition, and what you deliberately do not log—tokens, passwords, or sensitive personal data.</p></article>
+      </div>
+      <h3 style="margin-top:28px">When concurrent traffic rises</h3>
+      <div class="pipeline"><div class="step"><b>Measure</b><span>Latency, error rate, throughput, saturation.</span></div><div class="step"><b>Scale safely</b><span>Stateless instances behind a load balancer.</span></div><div class="step"><b>Protect data</b><span>Tune DB pool; index real query paths.</span></div><div class="step"><b>Cache wisely</b><span>Cache stable, read-heavy data with expiry.</span></div><div class="step"><b>Decouple</b><span>Move slow, non-critical work to async messaging.</span></div></div>
+      <p class="truth"><b>Interview upgrade:</b> Do not jump straight to Redis or Kafka. First say what is slow and how you know: “The dashboard shows database connection-pool wait time, so I’ll inspect slow queries and pool saturation before adding a cache.”</p>
+      <div class="decision">
+        <article><b>Thousands of MySQL rows</b><p>Paginate or use cursor/keyset pagination; select needed columns; add indexes matching the actual <code>WHERE</code>/<code>ORDER BY</code>; consider projections and caching.</p></article>
+        <article><b>Need an answer now</b><p>Use synchronous communication when the caller truly needs the response—e.g. validating a user or pricing a request. Bound it with timeouts, retries only where safe, and fallbacks.</p></article>
+        <article><b>Event can happen later</b><p>Use asynchronous messaging for notifications, analytics, or background work. Design for retries, duplicates, dead letters, observability, and idempotent consumers.</p></article>
+      </div>
+      <h3 style="margin-top:28px">Deployment incident answer</h3>
+      <div class="answer-frame"><span class="num">2</span><div><h3>Find the slow stage before “fixing” it</h3><p>“I compare build, test, image creation, image push, and rollout durations with prior deployments. Then I check recent changes: dependency growth, Docker-layer cache misses, image size, registry speed, startup time, readiness failures, and cluster capacity. If impact is high, I roll back to the last known-good version while I investigate.”</p></div></div>
+      <details><summary>How should I answer “how do you deploy and recover from failure?”</summary><div>Describe your real pipeline. Mention checks before deployment, health/readiness probes, logs and metrics during rollout, a rollback path, and a short post-incident improvement. Never claim blue-green or canary deployment if you have not used it; explain how you would use it instead.</div></details>
+      <details><summary>What does “stateless service” mean in this answer?</summary><div>Any request can go to any instance because user/session state is not stored in that instance’s memory. Persistent state lives in a shared backing store such as a database, cache, or identity provider. That makes horizontal scaling and replacement safer.</div></details>
+    </section>
+
+    <section id="code" data-label="Coding">
+      <p class="eyebrow">Coding drills · simple logic, clear narration</p>
+      <h2>Write the straightforward solution first</h2>
+      <p class="section-lead">The transcript included stream questions and an anagram task. Your interviewer is usually watching your assumptions, complexity, naming, and tests—not only the final answer.</p>
+      <div class="grid2">
+        <article class="card"><span class="tag java">Before typing</span><h3>Ask one useful question</h3><p>“Should comparison ignore case and spaces?” “Can input be <code>null</code>?” “Are characters limited to lowercase English letters?” Then say the complexity before you code.</p></article>
+        <article class="card"><span class="tag java">After typing</span><h3>Walk the edge cases</h3><p>Empty strings, different lengths, repeated letters, casing, punctuation, and a quick happy-path example. Then offer tests rather than silently hoping it works.</p></article>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="code"><button class="copy" type="button" data-copy="anagram-basic">Copy</button><pre id="anagram-basic"><code>boolean areAnagrams(String a, String b) {
+    if (a == null || b == null || a.length() != b.length()) {
+        return false;
+    }
+
+    int[] counts = new int[26]; <span class="comment">// lower-case a-z assumption</span>
+    for (int i = 0; i &lt; a.length(); i++) {
+        counts[a.charAt(i) - 'a']++;
+        counts[b.charAt(i) - 'a']--;
+    }
+    for (int count : counts) {
+        if (count != 0) return false;
+    }
+    return true;
+}</code></pre></div>
+        <div class="code"><button class="copy" type="button" data-copy="anagram-map">Copy</button><pre id="anagram-map"><code>boolean areAnagrams(String a, String b) {
+    if (a == null || b == null || a.length() != b.length()) {
+        return false;
+    }
+    return a.chars().boxed()
+        .collect(Collectors.groupingBy(
+            Function.identity(), Collectors.counting()))
+        .equals(b.chars().boxed()
+            .collect(Collectors.groupingBy(
+                Function.identity(), Collectors.counting())));
+}</code></pre></div>
+      </div>
+      <p class="truth"><b>Complexity:</b> both approaches are <code>O(n)</code> time. The frequency-array version uses constant space for its stated alphabet. The map/stream version is more general, but it has more allocation and is less appropriate if the interviewer explicitly asks for only basic logic.</p>
+    </section>
+
+    <section id="l3" data-label="L3">
+      <p class="eyebrow">Round 3 · live coding + technical management</p>
+      <h2>Build a small API like it will be reviewed</h2>
+      <p class="section-lead">The live task was an Employee–Address CRUD API, with proper responses, exception handling, and a <code>find by city</code> follow-up. A clean shape matters more than a huge solution.</p>
+      <div class="checklist" aria-label="Live coding CRUD checklist">
+        <label class="check"><input type="checkbox"> <span><b>Model relationships deliberately.</b><br>Choose ownership, validation rules, and fetch strategy; avoid returning a lazy entity graph directly.</span></label>
+        <label class="check"><input type="checkbox"> <span><b>Use request/response DTOs.</b><br>Keep API contracts separate from JPA entities and return only the fields callers need.</span></label>
+        <label class="check"><input type="checkbox"> <span><b>Validate at the boundary.</b><br>Use Bean Validation on request DTOs and return a consistent, useful error body.</span></label>
+        <label class="check"><input type="checkbox"> <span><b>Handle not-found once.</b><br>Throw a domain exception and translate it with <code>@RestControllerAdvice</code>.</span></label>
+        <label class="check"><input type="checkbox"> <span><b>Use correct HTTP semantics.</b><br><code>201 Created</code> for create, <code>200</code> for reads/updates, <code>204</code> for successful delete.</span></label>
+        <label class="check"><input type="checkbox"> <span><b>Design the query.</b><br>For city search, discuss exact/partial match, pagination, case rules, and an index if the data is large.</span></label>
+      </div>
+      <div class="interview-script" style="margin-top:16px"><b>Say this before coding:</b> “I’ll first make a thin vertical slice: DTO, validation, service, repository, and exception handler. I’ll return a response DTO, then add the city search with pagination. If time remains, I’ll add tests and discuss indexes and relationship fetching.”</div>
+      <h3 style="margin-top:28px">Before opening a pull request</h3>
+      <div class="grid2">
+        <article class="card"><span class="tag spring">Quality</span><h3>Evidence, not confidence</h3><p>Run tests, inspect the changed API contract, check validation and error paths, look for N+1 queries, review logs for sensitive data, format/lint, keep the diff small, and write a PR description that explains why.</p></article>
+        <article class="card"><span class="tag spring">Conflict</span><h3>Requirements vs best practice</h3><p>Clarify the business constraint and risk. Offer options with cost, security, and delivery impact. Record the decision. Escalate only when necessary; do not frame it as business versus engineering.</p></article>
+      </div>
+    </section>
+
+    <section id="hr" data-label="HR">
+      <p class="eyebrow">Managerial + HR · keep it truthful and forward-looking</p>
+      <h2>Make your career story coherent</h2>
+      <p class="section-lead">The final question—“why are you looking for a change?”—is not an invitation to criticise your employer. It checks maturity, direction, and whether the move makes sense.</p>
+      <div class="interview-script">“I’ve built strong experience in <b>[your real area]</b> and I’m proud of <b>[specific impact]</b>. I’m now looking for a role where I can deepen <b>[skill/domain]</b>, take more ownership of <b>[scope]</b>, and work on <b>[genuine attraction to the role]</b>. This position fits that direction.”</div>
+      <p class="truth"><b>Never invent production stories.</b> If you have not owned a deployment, say what you observed, what you contributed, and how you would approach the decision. Honest depth beats broad, fragile claims.</p>
+    </section>
+
+    <section id="sprint" data-label="Revision sprint">
+      <h2>A focused revision sprint</h2>
+      <p class="section-lead">For the experience level reflected in this interview, prepare your own project with the same care as Java theory.</p>
+      <div class="study"><div><b>Day 1</b><span>Explain project request flow aloud. Prepare metrics, errors, security, and one difficult incident.</span></div><div><b>Day 2</b><span>Java 8, collections, exceptions, streams, and output-prediction drills.</span></div><div><b>Day 3</b><span>Spring transactions, validation, JPA performance, API and deployment scenarios.</span></div><div><b>Day 4</b><span>Build one CRUD API from scratch. Practise anagrams and stream tasks without copying.</span></div></div>
+    </section>
+
+    <section id="practice" data-label="Practice">
+      <h2>Recall before you reread</h2>
+      <p class="section-lead">Tap a flashcard, then test yourself. Retrieval practice is more useful than repeatedly scanning notes.</p>
+      <div class="fc" id="flashcard" role="button" tabindex="0" aria-label="Flashcard, press to flip">
+        <div class="fc-inner"><div class="face front"><q id="fc-question"></q><b>Tap to flip</b></div><div class="face back"><div id="fc-answer"></div><b>Tap to flip back</b></div></div>
+      </div>
+      <div class="fc-nav"><button class="btn" id="previous" type="button">Previous</button><span id="fc-count"></span><button class="btn" id="next" type="button">Next</button></div>
+      <h3 style="margin-top:42px">Quick quiz</h3>
+      <div class="quiz" id="quiz" style="margin-top:14px"></div><p class="score" id="score"></p>
+    </section>
+
+    <section id="sources" data-label="Sources">
+      <h2>Source and accuracy notes</h2>
+      <div class="sources"><p>This is a study guide derived from the supplied transcript titled “PwC Java Interview Experience &amp; Questions [4 Rounds]”. It describes one reported experience, not an official PwC interview process or a guarantee of future questions.</p><p>The Spring transaction behaviour and proxied <code>@Configuration</code> notes were cross-checked against the <a href="https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html">Spring transaction reference</a> and the <a href="https://docs.spring.io/spring-framework/reference/core/beans/java/configuration-annotation.html">Spring Java configuration reference</a>. Verify the current Java release and your project’s specific framework version before an interview.</p></div>
+    </section>
+  </main>
+  <footer>Built for deliberate practice: use your real project examples, verify versions, and make every answer your own.</footer>
+
+  <script>
+    const sections = [...document.querySelectorAll('main section[data-label]')];
+    const nav = document.getElementById('nav');
+    sections.forEach(section => { const a = document.createElement('a'); a.href = '#' + section.id; a.textContent = section.dataset.label; nav.appendChild(a); });
+    const links = [...nav.querySelectorAll('a')];
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id)); }), { rootMargin:'-42% 0px -52% 0px' });
+    sections.forEach(section => observer.observe(section));
+
+    const root = document.documentElement;
+    document.getElementById('theme').onclick = () => { const dark = root.dataset.theme === 'dark'; root.dataset.theme = dark ? 'light' : 'dark'; };
+
+    document.querySelectorAll('[data-copy]').forEach(button => button.onclick = async () => { const text = document.getElementById(button.dataset.copy).innerText; try { await navigator.clipboard.writeText(text); button.textContent = 'Copied'; setTimeout(() => button.textContent = 'Copy', 1200); } catch { button.textContent = 'Select code'; } });
+
+    const drillButtons = [...document.querySelectorAll('[data-drill]')];
+    drillButtons.forEach(button => button.onclick = () => { drillButtons.forEach(b => b.classList.toggle('on', b === button)); document.querySelectorAll('.drill-item').forEach(item => item.hidden = item.dataset.item !== button.dataset.drill); });
+    document.querySelectorAll('.reveal').forEach(button => button.onclick = () => { const answer = button.nextElementSibling; answer.classList.toggle('show'); button.textContent = answer.classList.contains('show') ? 'Hide model answer' : 'Reveal model answer'; });
+
+    const cards = [
+      ['What is the safest way to answer “Which Java versions have you used?”', 'Name only versions you have used, say which one is current, and give one or two features you can explain with a real example.'],
+      ['Why are lambdas useful?', 'They let you pass behaviour as a value through a functional interface, making callbacks and collection transformations easier to compose.'],
+      ['When does Spring normally roll back a transaction?', 'By default, on RuntimeException and Error—not checked exceptions. Configure rollback rules deliberately and test the actual outcome.'],
+      ['How do you approach a slow API returning thousands of rows?', 'Measure first; paginate, fetch only needed fields, add query-aligned indexes, inspect the query plan, then cache stable data if justified.'],
+      ['When should asynchronous messaging be used?', 'When the caller does not need an immediate result and work can be retried later. Design for duplicate delivery, failures, observability, and idempotency.'],
+      ['What makes a good live-coding API answer?', 'A small working vertical slice: DTO validation, clear service logic, consistent errors, correct HTTP status, and a concise explanation of trade-offs.']
+    ];
+    let cardIndex = 0;
+    const flashcard = document.getElementById('flashcard');
+    function renderCard() { flashcard.classList.remove('flip'); document.getElementById('fc-question').textContent = cards[cardIndex][0]; document.getElementById('fc-answer').textContent = cards[cardIndex][1]; document.getElementById('fc-count').textContent = `${cardIndex + 1} of ${cards.length}`; }
+    flashcard.onclick = () => flashcard.classList.toggle('flip');
+    flashcard.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); flashcard.classList.toggle('flip'); } };
+    document.getElementById('next').onclick = () => { cardIndex = (cardIndex + 1) % cards.length; renderCard(); };
+    document.getElementById('previous').onclick = () => { cardIndex = (cardIndex - 1 + cards.length) % cards.length; renderCard(); };
+    renderCard();
+
+    const questions = [
+      { q:'A checked exception leaves a default Spring @Transactional method. What is the usual result?', o:['It always rolls back','It can commit unless rollback rules say otherwise','The application cannot compile'], a:1, why:'Spring’s traditional default rolls back for RuntimeException and Error, not checked exceptions.' },
+      { q:'An API reads 50,000 rows for a grid. What is the strongest first response?', o:['Return all rows and cache the JSON','Add pagination and inspect the query/indexes','Create a new Kafka topic'], a:1, why:'Control result size and identify the query bottleneck before adding infrastructure.' },
+      { q:'Which situation best fits asynchronous messaging?', o:['A checkout page needs a price immediately','Send a notification after an order succeeds','A controller validates a required field'], a:1, why:'Notifications can happen after the request and can be retried independently.' },
+      { q:'In a live CRUD task, why return a response DTO rather than the entity?', o:['To keep the API contract independent of persistence and avoid leaking fields/relations','Because JPA entities cannot be serialized','Because DTOs make database queries slower'], a:0, why:'DTOs give the API a deliberate contract and avoid accidental entity-graph exposure.' },
+      { q:'What is the best answer to “why are you changing jobs?”', o:['List everything wrong with the current company','Invent a bigger system you want to work on','Connect your actual experience, growth direction, and the role'], a:2, why:'A forward-looking, truthful story demonstrates maturity and intent.' }
+    ];
+    const quiz = document.getElementById('quiz'); let answered = 0, correct = 0;
+    questions.forEach((item, index) => { const box = document.createElement('article'); box.className = 'question'; box.innerHTML = `<h3>${index + 1}. ${item.q}</h3><div class="opts"></div><p class="why" hidden></p>`; const opts = box.querySelector('.opts'), why = box.querySelector('.why'); item.o.forEach((option, optionIndex) => { const button = document.createElement('button'); button.type = 'button'; button.textContent = option; button.onclick = () => { opts.querySelectorAll('button').forEach((b, i) => { b.disabled = true; if (i === item.a) b.classList.add('right'); }); if (optionIndex === item.a) correct++; else button.classList.add('wrong'); why.hidden = false; why.textContent = item.why; answered++; if (answered === questions.length) document.getElementById('score').textContent = `Score: ${correct} of ${questions.length}. Revisit any explanation you missed.`; }; opts.appendChild(button); }); quiz.appendChild(box); });
+  </script>
+</body>
+</html>
